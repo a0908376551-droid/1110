@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>日栖 KISSI COFFEE | 台中勤美巷弄手沖咖啡與法式甜點</title>
+  
+  <!-- Google Fonts: Noto Serif TC & Noto Sans TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'sans-serif'],
+            serif: ['"Noto Serif TC"', 'serif'],
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            fadeInUp: {
+              '0%': { opacity: '0', transform: 'translateY(24px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- React & ReactDOM (UMD Production Builds) -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  
+  <!-- Babel Standalone for JSX compilation in browser -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-[#FDFBF7] text-[#3D322C] font-sans antialiased selection:bg-[#8C6D53] selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // 封裝 Lucide SVG 圖示元件，確保在單一 HTML 中穩定渲染
+    const Icon = ({ name, className = "w-5 h-5" }) => {
+      const icons = {
+        coffee: <><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" x2="6" y1="2" y2="4"/><line x1="10" x2="10" y1="2" y2="4"/><line x1="14" x2="14" y1="2" y2="4"/></>,
+        mapPin: <><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>,
+        clock: <><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>,
+        phone: <><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></>,
+        mail: <><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></>,
+        checkCircle: <><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>,
+        sparkles: <><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></>,
+        menu: <><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></>,
+        x: <><path d="M18 6 6 18"/><path d="m6 6 12 12"/></>,
+        chevronRight: <><path d="m9 18 6-6-6-6"/></>,
+        instagram: <><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></>,
+        facebook: <><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></>,
+        heart: <><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></>,
+        info: <><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></>,
+        arrowUp: <><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></>
+      };
+
+      return (
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={className}
+        >
+          {icons[name]}
+        </svg>
+      );
+    };
+
+    function App() {
+      const [activeTab, setActiveTab] = useState('all');
+      const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+      const [scrolled, setScrolled] = useState(false);
+      const [showBackToTop, setShowBackToTop] = useState(false);
+      
+      // 線上訂位表單狀態
+      const [booking, setBooking] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        date: '',
+        time: '14:00',
+        guests: '2',
+        notes: ''
+      });
+      const [bookingSubmitted, setBookingSubmitted] = useState(false);
+
+      // 圖庫篩選標籤
+      const [activeGalleryTag, setActiveGalleryTag] = useState('all');
+
+      // 捲動監聽與 Scroll Reveal 進場動畫觸發
+      useEffect(() => {
+        const handleScroll = () => {
+          setScrolled(window.scrollY > 50);
+          setShowBackToTop(window.scrollY > 400);
+
+          const reveals = document.querySelectorAll('.scroll-reveal');
+          reveals.forEach((el) => {
+            const windowHeight = window.innerHeight;
+            const revealTop = el.getBoundingClientRect().top;
+            const revealPoint = 80;
+            if (revealTop < windowHeight - revealPoint) {
+              el.classList.add('opacity-100', 'translate-y-0');
+              el.classList.remove('opacity-0', 'translate-y-10');
+            }
+          });
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        // 延遲一小段時間確保 DOM 渲染完畢後觸發初始檢查
+        const timer = setTimeout(handleScroll, 100);
+
+        return () => {
+          window.removeEventListener('scroll', handleScroll);
+          clearTimeout(timer);
+        };
+      }, [activeTab, activeGalleryTag]);
+
+      const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      const handleBookingSubmit = (e) => {
+        e.preventDefault();
+        setBookingSubmitted(true);
+        setTimeout(() => {
+          setBookingSubmitted(false);
+          setBooking({
+            name: '',
+            phone: '',
+            email: '',
+            date: '',
+            time: '14:00',
+            guests: '2',
+            notes: ''
+          });
+        }, 5000);
+      };
+
+      // 菜單分類與品項資料
+      const menuCategories = [
+        { id: 'all', name: '全部餐點' },
+        { id: 'coffee', name: '手沖咖啡' },
+        { id: 'beverage', name: '特調飲品' },
+        { id: 'dessert', name: '手作甜點' }
+      ];
+
+      const menuItems = [
+        {
+          id: 1,
+          category: 'coffee',
+          name: '耶加雪菲 淺焙',
+          price: 180,
+          desc: '柑橘與白花香氣，口感清爽明亮，帶有微微水果酸甜。',
+          tag: '招牌主打',
+          img: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 2,
+          category: 'coffee',
+          name: '肯亞 AA 中深焙',
+          price: 190,
+          desc: '烏梅與黑巧克力風味，醇厚甘甜，餘韻綿長。',
+          tag: '人氣推薦',
+          img: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 3,
+          category: 'coffee',
+          name: '哥倫比亞 蜜處理',
+          price: 200,
+          desc: '焦糖香氣與紅酒韻味，層次豐富圓潤。',
+          tag: '限定精選',
+          img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 4,
+          category: 'beverage',
+          name: '燕麥奶拿鐵',
+          price: 160,
+          desc: '濃縮咖啡結合濃醇植物燕麥奶，滑順香甜無負擔。',
+          tag: '健康推薦',
+          img: 'https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 5,
+          category: 'beverage',
+          name: '靜岡抹茶歐蕾',
+          price: 170,
+          desc: '嚴選宇治靜岡抹茶配上小農鮮乳，苦甜平衡動人。',
+          tag: '熱門經典',
+          img: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 6,
+          category: 'beverage',
+          name: '氣泡冰美式',
+          price: 150,
+          desc: '現萃濃縮搭配氣泡水與黃檸檬片，解膩清爽。',
+          tag: '夏季首選',
+          img: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 7,
+          category: 'dessert',
+          name: '靜岡抹茶巴斯克',
+          price: 160,
+          desc: '濃郁半熟乳酪，帶有濃厚抹茶香氣與微焦香氣。',
+          tag: '每日限量',
+          img: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 8,
+          category: 'dessert',
+          name: '法式草莓千層',
+          price: 220,
+          desc: '酥脆千層餅皮夾入香草卡士達醬與當季新鮮草莓。',
+          tag: '季節限定',
+          img: 'https://images.unsplash.com/photo-1535141192574-5d4897c13136?auto=format&fit=crop&w=600&q=80'
+        },
+        {
+          id: 9,
+          category: 'dessert',
+          name: '焦糖烤布蕾',
+          price: 130,
+          desc: '經典法式甜點，現烤脆焦糖香氣搭配綿密細緻口感。',
+          tag: '主廚推薦',
+          img: 'https://images.unsplash.com/photo-1470124182917-cc6e71b22ecc?auto=format&fit=crop&w=600&q=80'
+        }
+      ];
+
+      const filteredMenuItems = activeTab === 'all' 
+        ? menuItems 
+        : menuItems.filter(item => item.category === activeTab);
+
+      // 空間圖庫資料
+      const galleryPhotos = [
+        { title: '日式木質外觀與綠意', category: 'exterior', img: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=800&q=80' },
+        { title: '溫暖採光區與舒適座椅', category: 'interior', img: 'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=800&q=80' },
+        { title: '專業手沖濾滴過程', category: 'coffee', img: 'https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80' },
+        { title: '手作法式甜點擺盤', category: 'dessert', img: 'https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80' },
+        { title: '安靜工作角落與充電座', category: 'interior', img: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=800&q=80' },
+        { title: '新鮮烘焙單品咖啡豆', category: 'coffee', img: 'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?auto=format&fit=crop&w=800&q=80' }
+      ];
+
+      const filteredGallery = activeGalleryTag === 'all' 
+        ? galleryPhotos 
+        : galleryPhotos.filter(p => p.category === activeGalleryTag);
+
+      return (
+        <div className="min-h-screen">
+          {/* 1. 頂部導覽列 Navbar */}
+          <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled ? 'bg-[#FDFBF7]/90 backdrop-blur-md shadow-sm py-4' : 'bg-transparent py-6'}`}>
+            <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
+              <a href="#" className="flex items-center gap-2.5 text-2xl font-serif font-bold tracking-wider text-[#2A231F] group">
+                <Icon name="coffee" className="w-7 h-7 text-[#8C6D53] group-hover:rotate-12 transition-transform duration-300" />
+                <span>日栖 <span className="text-xs font-sans font-light tracking-widest text-[#8C6D53] block group-hover:tracking-wider transition-all">KISSI COFFEE</span></span>
+              </a>
+
+              {/* 桌面版選單 */}
+              <div className="hidden md:flex items-center gap-8 font-medium text-sm tracking-wide">
+                <a href="#about" className="relative py-1 hover:text-[#8C6D53] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#8C6D53] hover:after:w-full after:transition-all">品牌理念</a>
+                <a href="#gallery" className="relative py-1 hover:text-[#8C6D53] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#8C6D53] hover:after:w-full after:transition-all">空間視覺</a>
+                <a href="#menu" className="relative py-1 hover:text-[#8C6D53] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#8C6D53] hover:after:w-full after:transition-all">特色菜單</a>
+                <a href="#info" className="relative py-1 hover:text-[#8C6D53] transition-colors after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-[#8C6D53] hover:after:w-full after:transition-all">營業與交通</a>
+                <a href="#booking" className="px-5 py-2.5 bg-[#8C6D53] hover:bg-[#735741] text-white rounded-full transition-all duration-300 shadow-sm hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0">
+                  線上訂位
+                </a>
+              </div>
+
+              {/* 手機版漢堡按鈕 */}
+              <button 
+                className="md:hidden text-[#2A231F] p-2 hover:bg-[#F4EFEA] rounded-lg transition-colors"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="開啟選單"
+              >
+                <Icon name={mobileMenuOpen ? "x" : "menu"} className="w-6 h-6" />
+              </button>
+            </div>
+
+            {/* 手機版下拉選單 */}
+            {mobileMenuOpen && (
+              <div className="md:hidden bg-[#FDFBF7] border-b border-[#EAE3D9] px-6 py-6 space-y-4 shadow-lg animate-[fadeIn_0.3s_ease-out]">
+                <a href="#about" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-base font-medium border-b border-stone-100 hover:text-[#8C6D53] transition-colors">品牌理念</a>
+                <a href="#gallery" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-base font-medium border-b border-stone-100 hover:text-[#8C6D53] transition-colors">空間視覺</a>
+                <a href="#menu" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-base font-medium border-b border-stone-100 hover:text-[#8C6D53] transition-colors">特色菜單</a>
+                <a href="#info" onClick={() => setMobileMenuOpen(false)} className="block py-2 text-base font-medium border-b border-stone-100 hover:text-[#8C6D53] transition-colors">營業與交通</a>
+                <a href="#booking" onClick={() => setMobileMenuOpen(false)} className="block w-full text-center py-3 bg-[#8C6D53] text-white rounded-xl font-medium mt-4 shadow-md">
+                  線上訂位
+                </a>
+              </div>
+            )}
+          </nav>
+
+          {/* 2. 主視覺 Hero Section */}
+          <section className="relative min-h-screen flex items-center justify-center pt-20 px-6 overflow-hidden">
+            <div className="absolute inset-0 z-0 opacity-15 bg-[radial-gradient(#8C6D53_1px,transparent_1px)] [background-size:24px_24px]"></div>
+            
+            {/* 背景光暈裝飾 */}
+            <div className="absolute top-1/4 right-10 w-96 h-96 bg-[#EBE0D0] rounded-full blur-3xl opacity-50 -z-10 animate-pulse"></div>
+            <div className="absolute bottom-10 left-10 w-80 h-80 bg-[#D9C5B2] rounded-full blur-3xl opacity-40 -z-10"></div>
+
+            <div className="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10 py-12">
+              
+              {/* 左側文案 */}
+              <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#EAE3D9] text-[#735741] text-xs font-medium tracking-widest uppercase transition-transform hover:scale-105 duration-300 animate-[fadeIn_0.8s_ease-out_0.2s_both]">
+                  <Icon name="sparkles" className="w-3.5 h-3.5" /> 台中勤美巷弄慢活空間
+                </div>
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-bold text-[#2A231F] leading-tight animate-[fadeInUp_0.8s_ease-out_0.4s_both]">
+                  在喧囂城市裡，<br />
+                  <span className="relative inline-block mt-1">
+                    找回屬於自己的慢步調。
+                    <span className="absolute bottom-1 left-0 w-full h-2 bg-[#D9C5B2]/40 -z-10 rounded"></span>
+                  </span>
+                </h1>
+                <p className="text-base sm:text-lg text-[#6E5D53] max-w-xl mx-auto lg:mx-0 leading-relaxed animate-[fadeInUp_0.8s_ease-out_0.6s_both]">
+                  嚴選各國單品手沖豆與每日現做法式甜點。在日系木質調的暖光下，品嚐一杯講究的咖啡，享受恬靜的午後時光。
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4 animate-[fadeInUp_0.8s_ease-out_0.8s_both]">
+                  <a href="#booking" className="group px-8 py-4 bg-[#8C6D53] hover:bg-[#735741] text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 font-medium hover:-translate-y-1">
+                    預約極致體驗 <Icon name="chevronRight" className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </a>
+                  <a href="#menu" className="px-8 py-4 bg-white hover:bg-stone-50 border border-[#D9C5B2] text-[#3D322C] rounded-xl shadow-sm hover:shadow-md transition-all duration-300 flex items-center justify-center gap-2 font-medium hover:-translate-y-0.5">
+                    瀏覽風味菜單
+                  </a>
+                </div>
+
+                {/* 特色數據 */}
+                <div className="grid grid-cols-3 gap-4 pt-8 border-t border-[#EAE3D9]/80 max-w-md mx-auto lg:mx-0 animate-[fadeIn_0.8s_ease-out_1s_both]">
+                  <div className="hover:scale-105 transition-transform duration-300">
+                    <span className="block text-2xl font-serif font-bold text-[#2A231F]">100%</span>
+                    <span className="text-xs text-[#8C6D53]">嚴選精品咖啡豆</span>
+                  </div>
+                  <div className="hover:scale-105 transition-transform duration-300">
+                    <span className="block text-2xl font-serif font-bold text-[#2A231F]">Handmade</span>
+                    <span className="text-xs text-[#8C6D53]">每日限量手作甜點</span>
+                  </div>
+                  <div className="hover:scale-105 transition-transform duration-300">
+                    <span className="block text-2xl font-serif font-bold text-[#2A231F]">Free</span>
+                    <span className="text-xs text-[#8C6D53]">獨立插座與全區Wi-Fi</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 右側主視覺照片 */}
+              <div className="lg:col-span-5 relative animate-[fadeIn_1s_ease-out_0.5s_both]">
+                <div className="relative mx-auto max-w-md lg:max-w-none">
+                  <div className="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl border-8 border-white group">
+                    <img 
+                      src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1000&q=80" 
+                      alt="日栖咖啡廳內景" 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+                  </div>
+                  {/* 懸浮小卡片 */}
+                  <div className="absolute -bottom-6 -left-6 bg-white/95 backdrop-blur-sm p-4 rounded-2xl shadow-xl border border-stone-100 flex items-center gap-4 max-w-xs hover:-translate-y-1 hover:shadow-2xl transition-all duration-300">
+                    <div className="p-3 bg-[#F4EFEA] rounded-xl text-[#8C6D53] animate-bounce">
+                      <Icon name="coffee" className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-bold text-[#2A231F]">極致手沖藝廊</h4>
+                      <p className="text-xs text-[#6E5D53]">精心控溫與流速沖煮</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
+          {/* 3. 品牌理念 About Section */}
+          <section id="about" className="py-24 bg-[#F4EFEA] overflow-hidden">
+            <div className="max-w-6xl mx-auto px-6 md:px-12">
+              <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 text-center max-w-2xl mx-auto mb-16">
+                <span className="text-xs font-bold tracking-widest text-[#8C6D53] uppercase">Brand Philosophy</span>
+                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2A231F] mt-2">關於日栖 KISSI</h2>
+                <div className="w-12 h-0.5 bg-[#8C6D53] mx-auto mt-4"></div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {[
+                  {
+                    icon: "coffee",
+                    title: "匠心手沖",
+                    desc: "我們親自拜訪合作莊園，揀選品質卓越的單品生豆。每一杯手沖都經過精確的水溫與沖煮比計算，綻放最純粹的風土韻味。"
+                  },
+                  {
+                    icon: "heart",
+                    title: "手作限定",
+                    desc: "甜點廚房堅持每日現做，嚴選法國伊斯尼奶油與日本靜岡抹茶。不使用人工添加物，讓美好的甜意自然回甘。"
+                  },
+                  {
+                    icon: "sparkles",
+                    title: "沉浸空間",
+                    desc: "空間設計結合溫暖木質與暖色柔光，每個座位均貼心設有充電插座與適宜的高度，不管是個人閱讀或好友聚會都極為舒適。"
+                  }
+                ].map((card, idx) => (
+                  <div 
+                    key={idx}
+                    className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 bg-[#FDFBF7] p-8 rounded-2xl shadow-sm border border-[#EAE3D9] hover:shadow-xl hover:-translate-y-2 group"
+                    style={{ transitionDelay: `${idx * 150}ms` }}
+                  >
+                    <div className="w-12 h-12 bg-[#F4EFEA] rounded-xl flex items-center justify-center text-[#8C6D53] mb-6 group-hover:bg-[#8C6D53] group-hover:text-white transition-colors duration-300">
+                      <Icon name={card.icon} className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-xl font-serif font-bold text-[#2A231F] mb-3 group-hover:text-[#8C6D53] transition-colors">{card.title}</h3>
+                    <p className="text-sm text-[#6E5D53] leading-relaxed">
+                      {card.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 4. 空間視覺圖庫 Gallery Section */}
+          <section id="gallery" className="py-24 px-6 md:px-12">
+            <div className="max-w-6xl mx-auto">
+              <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 flex flex-col md:flex-row md:items-end justify-between mb-12">
+                <div>
+                  <span className="text-xs font-bold tracking-widest text-[#8C6D53] uppercase">Gallery</span>
+                  <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2A231F] mt-2">空間與角落寫真</h2>
+                </div>
+                <div className="flex flex-wrap gap-2 mt-6 md:mt-0">
+                  {[
+                    { id: 'all', label: '全部照片' },
+                    { id: 'interior', label: '店內空間' },
+                    { id: 'coffee', label: '手沖咖啡' },
+                    { id: 'dessert', label: '手作甜點' }
+                  ].map(tag => (
+                    <button
+                      key={tag.id}
+                      onClick={() => setActiveGalleryTag(tag.id)}
+                      className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-300 ${activeGalleryTag === tag.id ? 'bg-[#8C6D53] text-white shadow-md scale-105' : 'bg-[#F4EFEA] text-[#6E5D53] hover:bg-[#EAE3D9] hover:scale-105'}`}
+                    >
+                      {tag.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredGallery.map((item, index) => (
+                  <div 
+                    key={index} 
+                    className="scroll-reveal opacity-0 translate-y-10 transition-all duration-500 group relative rounded-2xl overflow-hidden aspect-[4/3] bg-stone-200 shadow-sm border border-[#EAE3D9] hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+                    style={{ transitionDelay: `${(index % 3) * 100}ms` }}
+                  >
+                    <img 
+                      src={item.img} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end p-6">
+                      <span className="text-white font-medium text-base font-serif translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        {item.title}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 5. 特色菜單 Menu Section */}
+          <section id="menu" className="py-24 bg-[#F4EFEA] px-6 md:px-12">
+            <div className="max-w-6xl mx-auto">
+              <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 text-center max-w-2xl mx-auto mb-12">
+                <span className="text-xs font-bold tracking-widest text-[#8C6D53] uppercase">Menu Showcase</span>
+                <h2 className="text-3xl sm:text-4xl font-serif font-bold text-[#2A231F] mt-2">日栖精選菜單</h2>
+                <p className="text-sm text-[#6E5D53] mt-3">低消為每人一杯飲品，內用時間 120 分鐘。</p>
+                <div className="w-12 h-0.5 bg-[#8C6D53] mx-auto mt-4"></div>
+              </div>
+
+              {/* 菜單分類切換 */}
+              <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 flex justify-center gap-3 mb-12 overflow-x-auto pb-2">
+                {menuCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveTab(cat.id)}
+                    className={`px-6 py-2.5 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-300 ${
+                      activeTab === cat.id
+                        ? 'bg-[#8C6D53] text-white shadow-md scale-105'
+                        : 'bg-[#FDFBF7] text-[#6E5D53] border border-[#EAE3D9] hover:bg-[#EAE3D9] hover:scale-105'
+                    }`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* 菜單卡片列表 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredMenuItems.map((item, idx) => (
+                  <div 
+                    key={item.id}
+                    className="scroll-reveal opacity-0 translate-y-10 transition-all duration-500 bg-[#FDFBF7] rounded-2xl overflow-hidden shadow-sm border border-[#EAE3D9] hover:shadow-xl hover:-translate-y-2 transition-all duration-300 flex flex-col group"
+                    style={{ transitionDelay: `${(idx % 3) * 100}ms` }}
+                  >
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={item.img} 
+                        alt={item.name} 
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                      />
+                      <span className="absolute top-4 right-4 px-3 py-1 bg-[#2A231F]/80 backdrop-blur-sm text-white text-xs font-medium rounded-full shadow-sm">
+                        {item.tag}
+                      </span>
+                    </div>
+                    <div className="p-6 flex-1 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="text-lg font-serif font-bold text-[#2A231F] group-hover:text-[#8C6D53] transition-colors">{item.name}</h3>
+                          <span className="text-lg font-bold text-[#8C6D53]">NT$ {item.price}</span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-[#6E5D53] leading-relaxed mt-2">
+                          {item.desc}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* 6. 線上訂位 Booking Section */}
+          <section id="booking" className="py-24 px-6 md:px-12 relative overflow-hidden">
+            <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 max-w-4xl mx-auto bg-white rounded-3xl shadow-xl border border-[#EAE3D9] p-8 sm:p-12 relative">
+              <div className="absolute top-0 right-0 w-40 h-40 bg-[#F4EFEA] rounded-full blur-2xl -z-10"></div>
+              
+              <div className="text-center max-w-xl mx-auto mb-10">
+                <span className="text-xs font-bold tracking-widest text-[#8C6D53] uppercase">Table Reservation</span>
+                <h2 className="text-3xl font-serif font-bold text-[#2A231F] mt-2">線上席次預約</h2>
+                <p className="text-sm text-[#6E5D53] mt-2">預先為您保留溫暖座位，提早規劃恬靜午後時光。</p>
+              </div>
+
+              {bookingSubmitted ? (
+                <div className="bg-[#F4EFEA] border border-[#D9C5B2] rounded-2xl p-8 text-center animate-[fadeIn_0.5s_ease-out]">
+                  <div className="flex justify-center mb-4 text-[#8C6D53] animate-bounce">
+                    <Icon name="checkCircle" className="w-16 h-16" />
+                  </div>
+                  <h3 className="text-2xl font-serif font-bold text-[#2A231F] mb-2">預約資訊已送出！</h3>
+                  <p className="text-sm text-[#6E5D53] max-w-md mx-auto mb-4">
+                    感謝您的預約，我們已收到您的資訊。稍後將發送確認簡訊或 Email 至您的聯絡信箱。
+                  </p>
+                  <div className="inline-block text-xs bg-white px-4 py-2 rounded-lg text-[#8C6D53] border border-[#EAE3D9] shadow-sm">
+                    預約人：{booking.name} 先生/小姐 ｜ 時間：{booking.date} {booking.time} ({booking.guests}位)
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={handleBookingSubmit} className="space-y-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">訂位姓名 *</label>
+                      <input 
+                        type="text" 
+                        required
+                        placeholder="例如：王小明"
+                        value={booking.name}
+                        onChange={(e) => setBooking({...booking, name: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">聯絡電話 *</label>
+                      <input 
+                        type="tel" 
+                        required
+                        placeholder="0912-345-678"
+                        value={booking.phone}
+                        onChange={(e) => setBooking({...booking, phone: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">預約日期 *</label>
+                      <input 
+                        type="date" 
+                        required
+                        value={booking.date}
+                        onChange={(e) => setBooking({...booking, date: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">預約時間 *</label>
+                      <select 
+                        value={booking.time}
+                        onChange={(e) => setBooking({...booking, time: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                      >
+                        <option value="10:30">10:30</option>
+                        <option value="12:00">12:00</option>
+                        <option value="14:00">14:00</option>
+                        <option value="15:30">15:30</option>
+                        <option value="17:00">17:00</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">用餐人數 *</label>
+                      <select 
+                        value={booking.guests}
+                        onChange={(e) => setBooking({...booking, guests: e.target.value})}
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                      >
+                        <option value="1">1 人 (獨立座位)</option>
+                        <option value="2">2 人</option>
+                        <option value="3">3 人</option>
+                        <option value="4">4 人</option>
+                        <option value="5">5 人以上 (請電話預約)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#2A231F] uppercase mb-2">特殊需求與備註</label>
+                    <textarea 
+                      rows="3"
+                      placeholder="如有兒童椅需求或寵物同行，請在此備註..."
+                      value={booking.notes}
+                      onChange={(e) => setBooking({...booking, notes: e.target.value})}
+                      className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-[#8C6D53]/50 text-sm bg-[#FDFBF7] transition-all duration-300 focus:bg-white"
+                    ></textarea>
+                  </div>
+
+                  <button 
+                    type="submit"
+                    className="w-full py-4 bg-[#8C6D53] hover:bg-[#735741] text-white rounded-xl font-medium shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0"
+                  >
+                    確認送出預約
+                  </button>
+                </form>
+              )}
+            </div>
+          </section>
+
+          {/* 7. 營業資訊與 Google Maps 地圖 */}
+          <section id="info" className="py-24 bg-[#F4EFEA] px-6 md:px-12">
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                
+                {/* 左側營業與交通資訊 */}
+                <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 lg:col-span-5 space-y-8">
+                  <div>
+                    <span className="text-xs font-bold tracking-widest text-[#8C6D53] uppercase">Store Information</span>
+                    <h2 className="text-3xl font-serif font-bold text-[#2A231F] mt-2">營業與交通聯絡</h2>
+                    <div className="w-12 h-0.5 bg-[#8C6D53] mt-4"></div>
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/60 transition-colors duration-300">
+                      <div className="p-3 bg-white rounded-xl text-[#8C6D53] shadow-sm">
+                        <Icon name="mapPin" className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#2A231F]">門市地址</h4>
+                        <p className="text-sm text-[#6E5D53] mt-1">台中市西區美村路一段 123 巷 45 號</p>
+                        <p className="text-xs text-[#8C6D53] mt-1">（勤美草悟道商圈巷弄內，步行 3 分鐘）</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/60 transition-colors duration-300">
+                      <div className="p-3 bg-white rounded-xl text-[#8C6D53] shadow-sm">
+                        <Icon name="clock" className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#2A231F]">營業時間</h4>
+                        <p className="text-sm text-[#6E5D53] mt-1">週一至週日 10:00 - 19:00</p>
+                        <p className="text-xs text-rose-700 font-medium mt-1">每週三固定公休</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/60 transition-colors duration-300">
+                      <div className="p-3 bg-white rounded-xl text-[#8C6D53] shadow-sm">
+                        <Icon name="phone" className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#2A231F]">電話與 Email</h4>
+                        <p className="text-sm text-[#6E5D53] mt-1">(04) 2345-6789</p>
+                        <p className="text-sm text-[#6E5D53]">contact@kissicoffee.tw</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-4 p-3 rounded-xl hover:bg-white/60 transition-colors duration-300">
+                      <div className="p-3 bg-white rounded-xl text-[#8C6D53] shadow-sm">
+                        <Icon name="info" className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-[#2A231F]">交通指引與停車</h4>
+                        <p className="text-sm text-[#6E5D53] mt-1">
+                          【捷運】綠線「水安宮站」轉乘 300 號公車至草悟道站。<br />
+                          【停車】可停至「勤美誠品地下停車場」或「市民廣場公有停車場」。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 右側 Google Maps 嵌入 */}
+                <div className="scroll-reveal opacity-0 translate-y-10 transition-all duration-700 lg:col-span-7 h-[450px] rounded-3xl overflow-hidden shadow-lg border border-[#EAE3D9] bg-stone-200 hover:shadow-2xl transition-shadow duration-500">
+                  <iframe
+                    title="日栖咖啡門市地圖"
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3640.4284581451086!2d120.66164287604473!3d24.151838678398188!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x34693d987d6091e9%3A0x6b30f7b05fb1b15c!2zNDAyYW5n6KGXNDXomZ8!5e0!3m2!1szh-TW!2stw!4v1700000000000!5m2!1szh-TW!2stw"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
+
+              </div>
+            </div>
+          </section>
+
+          {/* 8. 頁尾 Footer */}
+          <footer className="bg-[#2A231F] text-[#D9C5B2] py-16 px-6 md:px-12 border-t border-[#3D322C]">
+            <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10">
+              <div className="md:col-span-2 space-y-4">
+                <a href="#" className="flex items-center gap-2.5 text-2xl font-serif font-bold text-white group">
+                  <Icon name="coffee" className="w-6 h-6 text-[#8C6D53] group-hover:rotate-12 transition-transform" />
+                  <span>日栖 KISSI COFFEE</span>
+                </a>
+                <p className="text-xs text-[#A8988B] max-w-sm leading-relaxed">
+                  在慢步調的咖啡香氣中，尋找生活的質感與溫度。嚴選精品手沖與法式限定甜點。
+                </p>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">快速連結</h4>
+                <ul className="space-y-2 text-xs text-[#A8988B]">
+                  <li><a href="#about" className="hover:text-white transition-colors">品牌理念</a></li>
+                  <li><a href="#gallery" className="hover:text-white transition-colors">空間視覺</a></li>
+                  <li><a href="#menu" className="hover:text-white transition-colors">特色菜單</a></li>
+                  <li><a href="#booking" className="hover:text-white transition-colors">線上訂位</a></li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-4">追蹤我們的動態</h4>
+                <div className="flex gap-4">
+                  <a href="#" aria-label="Instagram" className="p-2.5 bg-[#3D322C] hover:bg-[#8C6D53] text-white rounded-full transition-all duration-300 hover:scale-110">
+                    <Icon name="instagram" className="w-4 h-4" />
+                  </a>
+                  <a href="#" aria-label="Facebook" className="p-2.5 bg-[#3D322C] hover:bg-[#8C6D53] text-white rounded-full transition-all duration-300 hover:scale-110">
+                    <Icon name="facebook" className="w-4 h-4" />
+                  </a>
+                  <a href="mailto:contact@kissicoffee.tw" aria-label="Email" className="p-2.5 bg-[#3D322C] hover:bg-[#8C6D53] text-white rounded-full transition-all duration-300 hover:scale-110">
+                    <Icon name="mail" className="w-4 h-4" />
+                  </a>
+                </div>
+                <p className="text-xs text-[#A8988B] mt-4">IG: @kissicoffee_tw</p>
+              </div>
+            </div>
+
+            <div className="max-w-6xl mx-auto border-t border-[#3D322C] mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center text-xs text-[#8C7A6D]">
+              <p>© 2026 KISSI COFFEE 日栖咖啡. All Rights Reserved.</p>
+              <p className="mt-2 sm:mt-0">React + Tailwind CSS 互動網頁設計專案</p>
+            </div>
+          </footer>
+
+          {/* 懸浮返回頂部按鈕 */}
+          {showBackToTop && (
+            <button
+              onClick={scrollToTop}
+              className="fixed bottom-6 right-6 z-40 p-3 bg-[#8C6D53] hover:bg-[#735741] text-white rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 active:translate-y-0"
+              aria-label="返回頂部"
+            >
+              <Icon name="arrowUp" className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
